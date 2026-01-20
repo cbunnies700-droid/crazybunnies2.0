@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crazy Bunnies | Esports Team</title>
+
+<style>
+:root{
+  --accent:#c9a44c;
+  --text:#f5f5f5;
+  --muted:#888;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:'Segoe UI',Tahoma,Verdana,sans-serif;
+}
+
+/* BACKGROUND */
+body{
+  margin:0;
+  color:var(--text);
+  background:
+    linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.75)),
+    url("A_digital_graphic_design_features_the_Crazy_Bunnie.png")
+    center/cover no-repeat fixed;
+}
+
+/* NAV */
+nav{
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  padding:1rem;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(201,164,76,.25);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+nav a{
+  cursor:pointer;
+  font-weight:600;
+}
+nav a:hover{color:var(--accent)}
+
+/* SECTIONS */
+section{
+  min-height:100vh;
+  padding:3rem 1.5rem;
+  display:none;
+
+  background:rgba(0,0,0,.6);
+  border-radius:14px;
+  margin:2rem auto;
+  max-width:1100px;
+}
+
+section.active{display:block}
+
+/* HOME */
+.home{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.home img{
+  width:160px;
+  margin-bottom:1.5rem;
+}
+
+.home h1{
+  font-size:4.5rem;
+  letter-spacing:6px;
+  color:var(--accent);
+  margin:0;
+}
+
+@media(max-width:600px){
+  .home h1{font-size:3rem}
+}
+
+/* TEAM */
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;
+}
+
+.player{
+  background:#111;
+  border:1px solid #222;
+  padding:1rem;
+  border-radius:8px;
+}
+
+.player label{
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+.player input{
+  width:100%;
+  background:#000;
+  border:1px solid #333;
+  color:var(--text);
+  padding:.4rem;
+  margin-bottom:.5rem;
+}
+
+/* MATCHES */
+.match{
+  background:#111;
+  border-left:4px solid var(--accent);
+  padding:1rem;
+  margin-bottom:1rem;
+  border-radius:6px;
+}
+
+.match input,.match select{
+  width:100%;
+  background:#000;
+  border:1px solid #333;
+  color:var(--text);
+  padding:.4rem;
+  margin-bottom:.5rem;
+}
+
+.players-select{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:.4rem;
+  font-size:.85rem;
+}
+
+button{
+  background:var(--accent);
+  border:none;
+  padding:.6rem 1rem;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:.5rem;
+}
+
+button.danger{
+  background:#aa3333;
+  color:#fff;
+}
+
+footer{
+  text-align:center;
+  padding:2rem;
+  color:var(--muted);
+  font-size:.8rem;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <a onclick="show('home')">Home</a>
+  <a onclick="show('team')">Team</a>
+  <a onclick="show('matches')">Matches</a>
+</nav>
+
+<section id="home" class="home active">
+  <img src="A_digital_graphic_design_features_the_Crazy_Bunnie.png" alt="Logo">
+  <h1>CRAZY BUNNIES</h1>
+  <p style="color:var(--muted)">Official Esports Team</p>
+</section>
+
+<section id="team">
+  <h2>Playing Squad</h2>
+  <div class="team-grid" id="main"></div>
+
+  <h2>Substitutes</h2>
+  <div class="team-grid" id="subs"></div>
+</section>
+
+<section id="matches">
+  <h2>Matches & History</h2>
+  <div id="matchesList"></div>
+  <button onclick="addMatch()">+ Add Match</button>
+</section>
+
+<footer>© 2026 Crazy Bunnies Esports</footer>
+
+<script>
+/* NAV */
+function show(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* DATA */
+const LS="crazyBunniesData";
+let data=JSON.parse(localStorage.getItem(LS))||{
+  players:{main:[],subs:[]},
+  matches:[]
+};
+
+function save(){
+  localStorage.setItem(LS,JSON.stringify(data));
+}
+
+/* PLAYERS */
+const main=document.getElementById("main");
+const subs=document.getElementById("subs");
+
+function playerCard(p,i,type){
+  const d=document.createElement("div");
+  d.className="player";
+  d.innerHTML=`
+    <label>Name</label>
+    <input value="${p.name||''}">
+    <label>UID</label>
+    <input value="${p.uid||''}">
+  `;
+  d.querySelectorAll("input").forEach(inp=>{
+    inp.oninput=()=>{
+      data.players[type][i]={
+        name:d.children[1].value,
+        uid:d.children[3].value
+      };
+      save();
+    };
+  });
+  return d;
+}
+
+function loadPlayers(){
+  while(data.players.main.length<4)data.players.main.push({});
+  while(data.players.subs.length<4)data.players.subs.push({});
+  main.innerHTML=subs.innerHTML="";
+  data.players.main.forEach((p,i)=>main.appendChild(playerCard(p,i,"main")));
+  data.players.subs.forEach((p,i)=>subs.appendChild(playerCard(p,i,"subs")));
+}
+
+/* MATCHES */
+function addMatch(){
+  data.matches.push({opp:'',tour:'',result:'Upcoming',players:[]});
+  save();
+  renderMatches();
+}
+
+function deleteMatch(i){
+  if(confirm("Delete this match?")){
+    data.matches.splice(i,1);
+    save();
+    renderMatches();
+  }
+}
+
+function renderMatches(){
+  const c=document.getElementById("matchesList");
+  c.innerHTML="";
+  data.matches.forEach((m,i)=>{
+    const d=document.createElement("div");
+    d.className="match";
+    const all=[...data.players.main,...data.players.subs];
+    d.innerHTML=`
+      <input placeholder="Opponent" value="${m.opp}">
+      <input placeholder="Tournament" value="${m.tour}">
+      <select>
+        <option ${m.result=="Upcoming"?"selected":""}>Upcoming</option>
+        <option ${m.result=="Win"?"selected":""}>Win</option>
+        <option ${m.result=="Loss"?"selected":""}>Loss</option>
+      </select>
+      <div class="players-select">
+        ${all.map((p,pi)=>`
+          <label>
+            <input type="checkbox" ${m.players.includes(pi)?"checked":""}>
+            ${p.name||"Player "+(pi+1)}
+          </label>`).join("")}
+      </div>
+      <button class="danger" onclick="deleteMatch(${i})">Delete Match</button>
+    `;
+    const [o,t,r]=d.querySelectorAll("input,select");
+    o.oninput=()=>{m.opp=o.value;save()};
+    t.oninput=()=>{m.tour=t.value;save()};
+    r.onchange=()=>{m.result=r.value;save()};
+    d.querySelectorAll("input[type=checkbox]").forEach((cb,ci)=>{
+      cb.onchange=()=>{
+        m.players=[...d.querySelectorAll("input[type=checkbox]")]
+          .map((c,idx)=>c.checked?idx:null)
+          .filter(v=>v!==null);
+        save();
+      };
+    });
+    c.appendChild(d);
+  });
+}
+
+/* INIT */
+loadPlayers();
+if(!data.matches.length) addMatch();
+else renderMatches();
+</script>
+
+</body>
+</html>
